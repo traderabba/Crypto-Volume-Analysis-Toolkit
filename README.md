@@ -4,6 +4,8 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 
 # **Demo**
 
+![One Page Screenshor - Excludes Remaining Spot Tokens](https://github.com/traderabba/Crypto-Volume-Analysis-Toolkit/blob/main/demo.jpg)
+
 # **Features**
 
 - Easy to use
