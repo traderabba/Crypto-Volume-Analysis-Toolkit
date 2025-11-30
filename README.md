@@ -53,7 +53,7 @@ To use the tool efficiently, you need specific futures data from CoinAlyze:
 
 ### Why do This?
 
-Because before you run the toolkit, you need fresh futures data from CoinAlyze. So basically, you only need to launch Chrome, type VTMR and opn it, print the page into the Download folder. 
+Because before you run the toolkit, you need fresh futures data from CoinAlyze. So basically, you only need to launch Chrome 'n type VTMR and open it 'n print the page into the Download folder. 
 
 After you run the toolkit, it will take care of cleaning your download folder and leaving only the most valuable reports there. 
 
