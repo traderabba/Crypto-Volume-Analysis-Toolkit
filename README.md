@@ -16,12 +16,13 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 
 # **Installation Guide**
 
-###Toolkit Setup
-
 Before running the toolkit, you need to install these four libraries in your python or Pydroid3 environment:
 
 
-` pip install requests pandas beautifulsoup4 pypdf`
+`pip install requests pandas beautifulsoup4 pypdf`
 
+## API keys Setup
+
+## CoinAlyze VRMR Setup
 
 
