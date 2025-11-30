@@ -6,13 +6,17 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 
 # **Features**
 
-- Spot Volume Tracker v2.0
-- Multi-API verification (CG, CMC, LCW, CR)
-- Advanced Futures + Spot Analysis v1.0
-- Automatic clean HTML report generator
+- Easy to use
+- Fast, lightweight, and reliable
+- Works on any device
+- No complex setup
+- Automatic Spot Volume Tracking
+- Advanced Futures + Spot Analysis
+- Automatic clean HTML report generation
 - Automatic PDF export
-- Cleanup system that removes source files after analysis
-- Lightweight and fast
+- Cleans up after finishing
+- Multi-source verification reduces errors
+- Useful for daily analysis routines
 
 # **Installation & Setup**
 
