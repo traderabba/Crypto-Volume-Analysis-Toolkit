@@ -1,6 +1,8 @@
 # **Crypto Volume Analysis Toolkit**
 
-Lightweight and simple toolkit that helps you track high-volume crypto tokens in the last 24 hours and run cross-market analysis using spot + futures data and generate reports in a pdf file.
+Lightweight and simple toolkit that helps you track high-volume crypto tokens in the last 24 hours and run cross-market analysis using spot + futures data and generate reports in a pdf.
+
+The generated report is a valuable asset to cryto analysts and trades alike.
 
 # **Demo**
 
@@ -10,6 +12,7 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 
 - Easy to use
 - Fast, lightweight, and reliable
+- Execute the task in around 45 secs
 - Works on any device
 - No complex setup
 - Automatic Spot Volume Tracking
@@ -19,6 +22,7 @@ Lightweight and simple toolkit that helps you track high-volume crypto tokens in
 - Cleans up after finishing
 - Multi-source verification reduces errors
 - Useful for daily analysis routines
+- Explainer for Open Interest Signal Score (OISS)
 
 # **Installation & Setup**
 
@@ -51,7 +55,7 @@ To use the tool efficiently, you need specific futures data from CoinAlyze:
 
 `((vol_1d[0] / mc_1d[0]) * 10) / 10 * (vol_1d[0] / mc_1d[0] >= 0.5)`
 
-- Go to **Columns**, deselect all, and select **Market Capitalization**, **Volume 24H**, and **VTMR**, then click **Apply**.
+- Go to **Columns**, deselect all, and select **Market Capitalization**, **Volume 24H**, **Open Interest Change % 24H** and **VTMR**, then click **Apply**.
 
 - Bookmark the page and save it as VTMR.
 
@@ -74,3 +78,9 @@ MIT licensed — use, modify, or build freely.
 Contribute via issues, PRs, or feature suggestions.  
 
 All contributions stay MIT.
+
+# Changelog
+
+- v1.0: full version created and uploaded   on Nov. 30,2025.
+- v2.0: Integrated IOSS and explainer added on Dec. 02,2025.
+- Removed v1.0 from directory and leave v2.0 on Dec. 02,2025.
