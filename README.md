@@ -6,7 +6,7 @@ The generated report is a valuable asset to cryto analysts and trades alike.
 
 # **Demo**
 
-![One Page Screenshor - Excludes Remaining Spot Tokens](https://github.com/traderabba/Crypto-Volume-Analysis-Toolkit/blob/main/demo.jpg)
+![One Page Screenshor - Excludes Remaining Spot Tokens](https://github.com/traderabba/Crypto-Volume-Analysis-Toolkit/blob/Images/demo.jpg)
 
 # **Features**
 
