@@ -22,7 +22,6 @@ LOCK = threading.Lock()
 # ==============================
 # API KEYS & CONFIG
 # ==============================
-# Defaults
 HTML2PDF_API_KEY = 'CONFIG_REQUIRED_HTML2PDF'
 CMC_API_KEY = 'CONFIG_REQUIRED_CMC'
 LIVECOINWATCH_API_KEY = 'CONFIG_REQUIRED_LCW'
