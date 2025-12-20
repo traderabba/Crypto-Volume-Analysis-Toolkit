@@ -144,7 +144,7 @@ def update_config(variable_name, new_value):
         COINALYZE_VTMR_URL = new_value
     
     # Save to config file
-    config_file = BASE_DIR / "crypto_vat_config.json"
+    config_file = BASE_DIR / "crypto_toolkit_config.json"
     config = {
         "HTML2PDF_API_KEY": HTML2PDF_API_KEY,
         "CMC_API_KEY": CMC_API_KEY,
