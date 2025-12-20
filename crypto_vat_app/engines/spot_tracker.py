@@ -1,6 +1,5 @@
 import time
 import datetime
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any, Tuple
 import config
@@ -105,9 +104,31 @@ def fetch_coinrankings(session):
     print(f"   CoinRankings: {len(tokens)} tokens")
     return tokens
 
+# [RESTORED]: Helper functions
+def is_large_cap_token_from_list(tokens: List[Dict[str, Any]]) -> bool:
+    for token in tokens:
+        try:
+            if float(token.get('marketcap', 0)) > 1_000_000_000:
+                return True
+        except Exception:
+            continue
+    return False
+
+def calculate_simple_metrics(token_list: List[Dict[str, Any]]) -> Tuple[float, float, float]:
+    if not token_list:
+        return 0.0, 0.0, 0.0
+    try:
+        v = float(token_list[0].get('volume', 0))
+        m = float(token_list[0].get('marketcap', 0))
+        r = v / m if m else 0.0
+        return v, m, r
+    except Exception:
+        return 0.0, 0.0, 0.0
+
 def run_spot_analysis(user_id: str):
     print("   📊 Starting fresh spot analysis...")
     
+    # Run fetches in parallel
     sources = [fetch_coingecko, fetch_coinmarketcap, fetch_livecoinwatch, fetch_coinrankings]
     results = []
     
@@ -126,27 +147,35 @@ def run_spot_analysis(user_id: str):
     
     verified = []
     for sym, tokens in all_data.items():
-        volumes = [float(t['volume']) for t in tokens]
-        mcs = [float(t['marketcap']) for t in tokens]
-        if not volumes or not mcs: continue
-        
-        avg_vol = sum(volumes)/len(volumes)
-        avg_mc = sum(mcs)/len(mcs)
-        ratio = avg_vol/avg_mc if avg_mc else 0
-        large_cap = any(m > 1_000_000_000 for m in mcs)
+        # [RESTORED]: Original Logic using helpers
+        if len(tokens) == 1 and is_large_cap_token_from_list(tokens):
+            volume, marketcap, volume_ratio = calculate_simple_metrics(tokens)
+            if volume_ratio >= 0.50:
+                verified.append({
+                    "symbol": sym, "marketcap": marketcap, "volume": volume,
+                    "flipping_multiple": volume_ratio, "source_count": 1, "large_cap": True
+                })
+            continue
 
-        if (len(tokens) == 1 and large_cap and ratio >= 0.50) or (len(tokens) >= 2 and ratio > 0.75):
-            verified.append({
-                "symbol": sym, 
-                "marketcap": avg_mc, 
-                "volume": avg_vol,
-                "flipping_multiple": ratio, 
-                "source_count": len(tokens), 
-                "large_cap": large_cap
-            })
+        if len(tokens) >= 2:
+            volumes = [float(t['volume']) for t in tokens]
+            marketcaps = [float(t['marketcap']) for t in tokens]
+            if not volumes or not marketcaps: continue
+            
+            avg_volume = sum(volumes) / len(volumes)
+            avg_marketcap = sum(marketcaps) / len(marketcaps)
+            volume_ratio = (avg_volume / avg_marketcap) if avg_marketcap else 0.0
+            
+            if volume_ratio > 0.75:
+                verified.append({
+                    "symbol": sym, "marketcap": avg_marketcap, "volume": avg_volume,
+                    "flipping_multiple": volume_ratio, "source_count": len(tokens),
+                    "large_cap": any(m > 1_000_000_000 for m in marketcaps)
+                })
+
+    hot_tokens = sorted(verified, key=lambda x: x.get("flipping_multiple", 0), reverse=True)
     
-    hot_tokens = sorted(verified, key=lambda x: x['flipping_multiple'], reverse=True)
-    
+    # HTML Report Generation
     date_prefix = datetime.datetime.now().strftime("%b-%d-%y")
     filename = f"{user_id}_Volumed_Spot_Tokens_{date_prefix}.html"
     save_path = config.UPLOAD_FOLDER / filename
