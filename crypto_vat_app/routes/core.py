@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template_string, jsonify, request, redirect, session, url_for
+import os
+from flask import Blueprint, render_template_string, jsonify, request, redirect, session, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 import threading
 import config
@@ -57,6 +58,7 @@ def upload():
         f = request.files['futures_pdf']
         if f.filename.endswith('.pdf'):
             uid = session['user_id']
+            # Save to local temp folder
             filename = secure_filename(f"{uid}_futures.pdf")
             f.save(config.UPLOAD_FOLDER / filename)
             print(f"   ✅ Received PDF: {f.filename}")
@@ -67,32 +69,33 @@ def upload():
 @login_required
 def reports():
     uid = session['user_id']
-    _, bucket = config.FirebaseHelper.initialize()
+    
+    # [LOCAL MODE]: Scan the local folder for reports belonging to this user
     files = []
+    if config.UPLOAD_FOLDER.exists():
+        # Find PDFs and HTML reports containing the user ID
+        # Matches: "uid_analysis.pdf" or "uid_Volumed_Spot...html"
+        all_files = config.UPLOAD_FOLDER.glob(f"*{uid}*")
+        
+        for f in all_files:
+            if f.suffix in ['.pdf', '.html']:
+                # Generate a download link for the local file
+                files.append({
+                    "name": f.name,
+                    "url": url_for('core.download_local', filename=f.name)
+                })
     
-    # 1. Try Cloud Files
-    if bucket:
-        try:
-            blobs = bucket.list_blobs(prefix=f"reports/{uid}/")
-            files = [{"name": b.name.split('/')[-1], "url": b.public_url} for b in blobs]
-        except: pass
+    # Sort by newest first (optional, roughly by name or mtime if needed)
+    files.sort(key=lambda x: x['name'], reverse=True)
     
-    # 2. [CRITICAL] Add Local Files (The Backup Plan)
-    # This ensures you see reports even without Cloud Storage
-    local_reports = config.UPLOAD_FOLDER.glob(f"*{uid}*analysis*.pdf")
-    for f in local_reports:
-        # Avoid duplicates if cloud is active
-        if not any(d['name'] == f.name for d in files):
-            # Create a local link route
-            files.append({"name": f.name, "url": f"/download-local/{f.name}"})
-            
     return render_template_string(REPORT_LIST_TEMPLATE, files=files)
 
-# 3. Add this NEW Route to download local files
-@core_bp.route("/download-local/<path:filename>")
+@core_bp.route("/download/<path:filename>")
 @login_required
 def download_local(filename):
-    return send_from_directory(config.UPLOAD_FOLDER, filename)
+    """Serves the generated report file to the user."""
+    return send_from_directory(config.UPLOAD_FOLDER, filename, as_attachment=False)
+
 @core_bp.route("/help")
 def help_page(): return render_template_string(HELP_TEMPLATE)
 
