@@ -4,7 +4,7 @@ Is a powerful web-based suite designed for crypto analysts and traders. It track
 
 # **Demo**
 
-![One Page Screenshot - Excludes Remaining Spot Tokens](https://github.com/traderabba/Crypto-Volume-Analysis-Toolkit/blob/images/demo.jpg)
+![One Page Screenshot - Excludes Remaining Spot Tokens](https://github.com/heisbuba/crypto-volume-analysis-toolkit/demo/demo.jpg?raw=true)
 
 # **Features**
 
