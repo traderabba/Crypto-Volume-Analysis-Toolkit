@@ -1,0 +1,371 @@
+import time
+import datetime
+import threading
+import requests
+from typing import List, Dict, Any, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Import Shared Modules
+from src.state import get_user_temp_dir
+from src.config import STABLECOINS
+from src.services.utils import SESSION, short_num, now_str
+
+def spot_volume_tracker(user_keys, user_id) -> None:
+    """
+    Aggregates spot market data from CoinGecko, CoinMarketCap, LiveCoinWatch, and CoinRankings.
+    Identifies tokens where 24h Volume > 75% of Market Cap.
+    """
+    print("   📊 Starting fresh spot analysis...")
+    
+    # Extract API keys
+    CMC_API_KEY = user_keys.get("CMC_API_KEY", "CONFIG_REQUIRED_CMC")
+    LIVECOINWATCH_API_KEY = user_keys.get("LIVECOINWATCH_API_KEY", "CONFIG_REQUIRED_LCW")
+    COINRANKINGS_API_KEY = user_keys.get("COINRANKINGS_API_KEY", "CONFIG_REQUIRED_CR")
+                                     
+    def create_html_report(hot_tokens: List[Dict[str, Any]]) -> str:
+        """Generates an HTML report table for the identified high-volume spot tokens."""
+        date_prefix = datetime.datetime.now().strftime("%b-%d-%y_%H-%M")
+        
+        # Use user isolated directory
+        user_dir = get_user_temp_dir(user_id) 
+        html_file = user_dir / f"Volumed_Spot_Tokens_{date_prefix}.html"
+        
+        current_time = now_str("%d-%m-%Y %H:%M:%S")
+
+        max_flip = max((t.get('flipping_multiple', 0) for t in hot_tokens), default=0)
+        high_volume = len([t for t in hot_tokens if t.get('flipping_multiple', 0) >= 2])
+        large_cap_count = len([t for t in hot_tokens if t.get('large_cap')])
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Crypto Volume Tracker v2.0</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }}
+                .header {{ text-align: center; background-color: #2c3e50; color: white; padding: 20px; border-radius: 10px; }}
+                .summary {{ background-color: #34495e; color: white; padding: 15px; border-radius: 8px; margin: 10px 0; }}
+                .table {{ width: 100%; border-collapse: collapse; background-color: white; }}
+                .table th {{ background-color: #3498db; color: white; padding: 12px; text-align: left; }}
+                .table td {{ padding: 10px; border-bottom: 1px solid #ddd; }}
+                .table tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                .table tr:hover {{ background-color: #e8f4f8; }}
+                .footer {{ text-align: center; margin-top: 20px; color: #7f8c8d; }}
+                .large-cap {{ background-color: #e8f6f3 !important; }}
+                .high-volume {{ color: #e74c3c; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>SPOT VOLUME CRYPTO TRACKER v2.0</h1>
+                <p>High Volume Spot Tokens Analysis</p>
+                <p><small>Generated on: {current_time}</small></p>
+            </div>
+            <div class="summary">
+                <h3>Summary</h3>
+                <p>Total High-Volume Tokens: {len(hot_tokens)}</p>
+                <p>Peak Flipping (VTMR) Multiple: {max_flip:.1f}x</p>
+                <p>High-Volume Tokens (2x+): {high_volume}</p>
+                <p>Large-Cap Tokens (>$1B): {large_cap_count}</p>
+            </div>
+        """
+
+        if hot_tokens:
+            html_content += """
+            <table class="table">
+                <tr>
+                    <th>Rank</th>
+                    <th>Ticker</th>
+                    <th>Market Cap</th>
+                    <th>Volume 24h</th>
+                    <th>Spot VTMR</th>
+                    <th>Verifications</th>
+                    <th>Large Cap</th>
+                </tr>
+            """
+            for i, token in enumerate(hot_tokens):
+                row_class = "large-cap" if token.get('large_cap') else ""
+                volume_class = "high-volume" if token.get('flipping_multiple', 0) >= 2 else ""
+                html_content += f"""
+                <tr class="{row_class}">
+                    <td>#{i+1}</td>
+                    <td><b>{token.get('symbol')}</b></td>
+                    <td>${short_num(token.get('marketcap', 0))}</td>
+                    <td>${short_num(token.get('volume', 0))}</td>
+                    <td class="{volume_class}">{token.get('flipping_multiple', 0):.1f}x</td>
+                    <td>{token.get('source_count')}</td>
+                    <td>{'Yes' if token.get('large_cap') else 'No'}</td>
+                </tr>
+                """
+            html_content += "</table>"
+        else:
+            html_content += "<div style='text-align: center; padding: 40px;'><h3>No high-volume tokens found</h3></div>"
+
+        html_content += f"""
+            <div class="footer">
+                <p>Generated by Spot Volume Crypto Tracker v2.0 | By (@heisbuba)</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        return html_file
+
+    # --- Data Fetching Functions ---
+
+    def fetch_coingecko(session: requests.Session) -> List[Dict[str, Any]]:
+        threading.current_thread().name = f"user_{user_id}"
+        tokens: List[Dict[str, Any]] = []
+        print("   Scanning CoinGecko...")
+        for page in range(1, 5):
+            url = "https://api.coingecko.com/api/v3/coins/markets"
+            params = {"vs_currency": "usd", "order": "market_cap_desc", "per_page": 250, "page": page}
+            try:
+                r = session.get(url, params=params, timeout=15)
+                r.raise_for_status()
+                data = r.json()
+                for t in data:
+                    symbol = (t.get("symbol") or "").upper()
+                    if symbol in STABLECOINS: continue
+                    volume = float(t.get("total_volume") or 0)
+                    marketcap = float(t.get("market_cap") or 0)
+                    if marketcap and volume > 0.75 * marketcap:
+                        tokens.append({
+                            "symbol": symbol,
+                            "marketcap": marketcap,
+                            "volume": volume,
+                            "volume_ratio": volume / marketcap if marketcap else 0,
+                            "source": "CG"
+                        })
+                time.sleep(0.2)
+            except Exception:
+                continue
+        print(f"   CoinGecko: {len(tokens)} tokens")
+        return tokens
+
+    def fetch_coinmarketcap(session: requests.Session) -> List[Dict[str, Any]]:
+        threading.current_thread().name = f"user_{user_id}"
+        tokens: List[Dict[str, Any]] = []
+        print("   Scanning CoinMarketCap...")
+        if not CMC_API_KEY or CMC_API_KEY == "CONFIG_REQUIRED_CMC":
+            print("   ⚠️  No CMC API key provided")
+            return tokens
+        headers = {"X-CMC_PRO_API_KEY": CMC_API_KEY}
+        for start in range(1, 1001, 100):
+            url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+            params = {"start": start, "limit": 100, "convert": "USD"}
+            try:
+                r = session.get(url, headers=headers, params=params, timeout=15)
+                r.raise_for_status()
+                data = r.json().get("data", [])
+                for t in data:
+                    symbol = (t.get("symbol") or "").upper()
+                    if symbol in STABLECOINS: continue
+                    quote = t.get("quote", {}).get("USD", {})
+                    volume = float(quote.get("volume_24h") or 0)
+                    marketcap = float(quote.get("market_cap") or 0)
+                    if marketcap and volume > 0.75 * marketcap:
+                        tokens.append({
+                            "symbol": symbol,
+                            "marketcap": marketcap,
+                            "volume": volume,
+                            "volume_ratio": volume / marketcap if marketcap else 0,
+                            "source": "CMC"
+                        })
+                time.sleep(0.2)
+            except Exception:
+                continue
+        print(f"   CoinMarketCap: {len(tokens)} tokens")
+        return tokens
+
+    def fetch_livecoinwatch(session: requests.Session) -> List[Dict[str, Any]]:
+        threading.current_thread().name = f"user_{user_id}"
+        tokens: List[Dict[str, Any]] = []
+        if not LIVECOINWATCH_API_KEY or LIVECOINWATCH_API_KEY == "CONFIG_REQUIRED_LCW":
+            print("   ⚠️  No LiveCoinWatch API key provided")
+            return tokens
+        print("   Scanning LiveCoinWatch...")
+        url = "https://api.livecoinwatch.com/coins/list"
+        headers = {"content-type": "application/json", "x-api-key": LIVECOINWATCH_API_KEY}
+        payload = {"currency": "USD", "sort": "rank", "order": "ascending", "offset": 0, "limit": 1000, "meta": True}
+        try:
+            r = session.post(url, json=payload, headers=headers, timeout=20)
+            r.raise_for_status()
+            data = r.json()
+            for t in data:
+                symbol = (t.get("code") or "").upper()
+                if symbol in STABLECOINS: continue
+                volume = float(t.get("volume") or 0)
+                marketcap = float(t.get("cap") or 0)
+                if marketcap and volume > 0.75 * marketcap:
+                    tokens.append({
+                        "symbol": symbol,
+                        "marketcap": marketcap,
+                        "volume": volume,
+                        "volume_ratio": volume / marketcap if marketcap else 0,
+                        "source": "LCW"
+                    })
+        except Exception:
+            pass
+        print(f"   LiveCoinWatch: {len(tokens)} tokens")
+        return tokens
+
+    def fetch_coinrankings(session: requests.Session) -> List[Dict[str, Any]]:
+        threading.current_thread().name = f"user_{user_id}"
+        tokens: List[Dict[str, Any]] = []
+        print("   Scanning CoinRankings...")
+        if not COINRANKINGS_API_KEY or COINRANKINGS_API_KEY == "CONFIG_REQUIRED_CR":
+            print("   ⚠️  No CoinRankings API key provided")
+            return tokens
+        headers = {"x-access-token": COINRANKINGS_API_KEY}
+        url = "https://api.coinranking.com/v2/coins"
+        for offset in range(0, 1000, 100):
+            params = {"limit": 100, "offset": offset, "orderBy": "marketCap", "orderDirection": "desc"}
+            try:
+                r = SESSION.get(url, headers=headers, params=params, timeout=15)
+                r.raise_for_status()
+                data = r.json()
+                coins = data.get("data", {}).get("coins", [])
+                for coin in coins:
+                    symbol = (coin.get("symbol") or "").upper()
+                    if symbol in STABLECOINS: continue
+                    volume = float(coin.get("24hVolume") or 0)
+                    marketcap = float(coin.get("marketCap") or 0)
+                    if marketcap and volume > 0.75 * marketcap:
+                        tokens.append({
+                            "symbol": symbol,
+                            "marketcap": marketcap,
+                            "volume": volume,
+                            "volume_ratio": volume / marketcap if marketcap else 0,
+                            "source": "CR"
+                        })
+                time.sleep(0.2)
+            except Exception:
+                pass
+        print(f"   CoinRankings: {len(tokens)} tokens")
+        return tokens
+
+    def fetch_all_sources() -> Tuple[List[Dict[str, Any]], int]:
+        """Concurrent execution of all data fetchers."""
+        print("   Scanning for high-volume tokens...")
+        print("   Criteria: Volume > 75% of Market Cap")
+        print("   Large-cap: Volume >= 50% of Market Cap")
+        print("   " + "-" * 50)
+        sources = [fetch_coingecko, fetch_coinmarketcap, fetch_livecoinwatch, fetch_coinrankings]
+        results: List[Dict[str, Any]] = []
+        futures = []
+        with ThreadPoolExecutor(max_workers=4) as exe:
+            for fn in sources:
+                futures.append(exe.submit(fn, SESSION))
+            for f in as_completed(futures):
+                try:
+                    res = f.result(timeout=60)
+                    if res:
+                        results.extend(res)
+                except Exception:
+                    continue
+        print(f"   Total raw results: {len(results)}")
+        return results, len(results)
+
+    def is_large_cap_token_from_list(tokens: List[Dict[str, Any]]) -> bool:
+        for token in tokens:
+            try:
+                if float(token.get('marketcap', 0)) > 1_000_000_000:
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def calculate_simple_metrics(token_list: List[Dict[str, Any]]) -> Tuple[float, float, float]:
+        if not token_list:
+            return 0.0, 0.0, 0.0
+        try:
+            v = float(token_list[0].get('volume', 0))
+            m = float(token_list[0].get('marketcap', 0))
+            r = v / m if m else 0.0
+            return v, m, r
+        except Exception:
+            return 0.0, 0.0, 0.0
+
+    # --- Processing Logic ---
+    raw_tokens, _ = fetch_all_sources()
+    all_data: Dict[str, List[Dict[str, Any]]] = {}
+    
+    # Aggregate by Symbol
+    for t in raw_tokens:
+        sym = (t.get('symbol') or '').upper()
+        if not sym: continue
+        all_data.setdefault(sym, []).append(t)
+
+    verified_tokens: List[Dict[str, Any]] = []
+    
+    # Verification & Averaging Logic
+    for sym, tokens in all_data.items():
+        # Case 1: Large Cap (Allow single source verification if Market Cap > 1B)
+        if len(tokens) == 1 and is_large_cap_token_from_list(tokens):
+            volume, marketcap, volume_ratio = calculate_simple_metrics(tokens)
+            if volume_ratio >= 0.50:
+                verified_tokens.append({
+                    "symbol": sym,
+                    "marketcap": marketcap,
+                    "volume": volume,
+                    "volume_ratio": volume_ratio,
+                    "flipping_multiple": volume_ratio,
+                    "source_count": 1,
+                    "large_cap": True
+                })
+            continue
+
+        # Case 2: Multi-source verification for standard caps
+        if len(tokens) >= 2:
+            volumes = []
+            marketcaps = []
+            for t in tokens:
+                try:
+                    volumes.append(float(t.get('volume', 0)))
+                    marketcaps.append(float(t.get('marketcap', 0)))
+                except Exception:
+                    continue
+            if not volumes or not marketcaps:
+                continue
+            avg_volume = sum(volumes) / len(volumes)
+            avg_marketcap = sum(marketcaps) / len(marketcaps)
+            volume_ratio = (avg_volume / avg_marketcap) if avg_marketcap else 0.0
+            if volume_ratio > 0.75:
+                verified_tokens.append({
+                    "symbol": sym,
+                    "marketcap": avg_marketcap,
+                    "volume": avg_volume,
+                    "volume_ratio": volume_ratio,
+                    "flipping_multiple": volume_ratio,
+                    "source_count": len(tokens),
+                    "large_cap": any(m > 1_000_000_000 for m in marketcaps)
+                })
+
+    hot_tokens = sorted(verified_tokens, key=lambda x: x.get("flipping_multiple", 0), reverse=True)
+    html_file = create_html_report(hot_tokens)
+
+    now_h = datetime.datetime.now().strftime("%H:%M:%S")
+    print(f"   Found {len(hot_tokens)} high-volume tokens at {now_h}")
+    print(f"   HTML report: {html_file}")
+
+    if hot_tokens:
+        print("\n   HIGH-VOLUME TOKENS:")
+        print("   " + "-" * 60)
+        for i, token in enumerate(hot_tokens):
+            large_cap_indicator = " [LARGE]" if token.get('large_cap') else ""
+            print(f"   #{i+1:2d}. {token.get('symbol', ''):8} {token.get('flipping_multiple', 0):.1f}x "
+                  f"| MC: ${short_num(token.get('marketcap', 0)):>8} | Sources: {token.get('source_count')}{large_cap_indicator}")
+        print("   " + "-" * 60)
+        max_flip = max((t.get('flipping_multiple', 0) for t in hot_tokens), default=0)
+        high_volume = len([t for t in hot_tokens if t.get('flipping_multiple', 0) >= 2])
+        large_cap_count = len([t for t in hot_tokens if t.get('large_cap')])
+        print(f"   Peak: {max_flip:.1f}x | High-volume: {high_volume} tokens")
+        print(f"   Large-cap: {large_cap_count} tokens")
+    else:
+        print("   No high-volume tokens found")
+
+    print("   💡 Spot data saved. Run Advanced Analysis to use this data.")
+    print("   Spot Volume Tracker completed!")
