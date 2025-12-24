@@ -1,1 +1,180 @@
-# goes
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    /* --- GENERAL LAYOUT --- */
+    body { background: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; color: #9333ea; margin-bottom: 30px; }
+
+    /* --- FILE CARD --- */
+    .file-item { 
+        background: #151a1e; 
+        padding: 15px 20px; 
+        border-radius: 12px; 
+        border: 1px solid #2b3139; 
+        margin-bottom: 12px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        transition: all 0.2s ease; 
+        position: relative; 
+    }
+    .file-item:hover { 
+        border-color: #9333ea; 
+        background: #1a2026; 
+        transform: translateX(5px);
+    }
+    .file-item:has(.menu-checkbox:checked) {
+    z-index: 50;
+    }
+
+    /* --- FILENAME --- */
+    .filename { 
+        font-family: monospace; 
+        font-size: 0.9rem; 
+        color: #eaecef; 
+        word-break: break-all; 
+        margin-right: 15px; 
+        flex: 1; 
+    }
+
+    /* --- SPLIT BUTTON COMPONENT --- */
+    .split-btn {
+        position: relative;
+        display: inline-flex;
+        vertical-align: middle;
+        flex-shrink: 0; /* Prevents button from being squashed */
+    }
+
+    /* 1. Main View Button */
+    .btn-main {
+        background: #9333ea;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px 0 0 6px; 
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid #9333ea;
+        transition: background 0.2s;
+        z-index: 2;
+    }
+    .btn-main:hover {
+        background: #7e22ce;
+        box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+    }
+
+    /* 2. Arrow Trigger */
+    .btn-arrow {
+        background: #9333ea;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 0 6px 6px 0;
+        border: 1px solid #9333ea;
+        border-left: 1px solid rgba(255,255,255,0.3);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: background 0.2s;
+        outline: none;
+    }
+    .btn-arrow:hover, .btn-arrow:focus {
+        background: #7e22ce;
+    }
+
+    /* 3. Dropdown Menu */
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 4px;
+        background: #1e2329;
+        border: 1px solid #2b3139;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        min-width: 130px;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+    }
+
+    /* 4. Interaction */
+
+    .menu-checkbox:checked ~ .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0); }
+   .menu-checkbox:checked + .btn-arrow {
+      background: #7e22ce; }
+  
+    /* Dropdown Items */
+    .dropdown-item {
+        display: block;
+        padding: 10px 15px;
+        color: #eaecef;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+    }
+    .dropdown-item:hover {
+        background: #2b3139;
+        color: #fff;
+    }
+    .icon-dl { margin-right: 8px; color: #60a5fa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>📄 Analysis Reports</h1>
+    
+    {% if report_files %}
+        {% for f in report_files %}
+            <div class="file-item">
+                <span class="filename">{{ f }}</span>
+                
+                <div class="split-btn">
+    <a href="{{ url_for('main.serve_report', filename=f) }}" target="_blank" class="btn-main">VIEW</a>
+
+    <input type="checkbox" id="toggle-{{ loop.index }}" class="menu-checkbox" style="display: none;">
+    <label for="toggle-{{ loop.index }}" class="btn-arrow">▼</label>
+
+    <div class="dropdown-menu">
+        <a href="{{ url_for('main.serve_report', filename=f, dl='1') }}" class="dropdown-item">
+            <span class="icon-dl">⬇</span> Download
+        </a>
+    </div>
+</div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align:center; color:#848e9c; margin-top: 40px;">No reports found yet</p>
+    {% endif %}
+    
+    <a href="{{ url_for('main.home') }}" style="color: #3b82f6; text-decoration:none; display:block; text-align:center; margin-top: 30px;">← Back to Dashboard</a>
+</div>
+<!-- Simple Js For Interactive Buttons -->
+<script>
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('menu-checkbox') && e.target.checked) {
+            document.querySelectorAll('.menu-checkbox').forEach(box => {
+                if (box !== e.target) {
+                    box.checked = false;
+                }
+            });
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.split-btn')) {
+            document.querySelectorAll('.menu-checkbox').forEach(box => {
+                box.checked = false;
+            });
+        }
+    });
+</script>
+{% endblock %}
