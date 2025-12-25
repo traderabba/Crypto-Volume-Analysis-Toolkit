@@ -28,11 +28,11 @@
 
 - Launch the [Live App Here](https://huggingface.co/spaces/heisbuba/cryptovat).
 - Create an account and log in.
-- Obtan and enter your API keys in the Setup Wizard.
+- Obtain and enter your API keys in the **Setup Wizard**.
 
 - Visit [CoinAlyze.net](https://coinalyze.net) and sign up.
 
-- Navigate to **Custom Metrics** and tap on **Create Custom Metrics**.
+- Navigate to **Custom Metrics** and click on **Create Custom Metrics**.
 
 - Enter **VTMR** in the Name and Short Name fields, paste the **VTMR code** below in the Expression field, then **Save & Close**.
 
@@ -42,11 +42,13 @@
 
 - Go to **Columns**, deselect all, and select **Market Capitalization**, **Volume 24H**, **Open Interest Change % 24H**, **Predicted Funding Rate Average, OI Weighted**, and **VTMR**, then click **Apply**.
 
-- Sort the whole data by **VTMR**, copy the URL and paste it in the VTMR box in App's setup wizard and proceed to dashboard.
+- Sort the data by **VTMR**, copy the URL and paste it in the VTMR box in App's Setup Wizard and proceed to dashboard.
 
-- Tap on **Spot Scan** to generate spit data >  **Get Futures** > **Open CoinAlyze** > Chrome menu >>  → Share → Print, and save it as it is without changing the file name or by naming it **Futures.pdf**.
+- Tap on **Spot Scan** to generate spot market data.
 
-- Then use the upload button in **Get Futures** to upload it back to complete your cross-market analysis.
+- Click on **Get Futures** > **Open CoinAlyze** > Go to Chrome Menu (⋮) >  → Share → Print, and save it as PDF. **Note:** Do not change the file name; but if you must then ensure it is saved as **Futures.pdf**.
+
+- Use the upload button in **Get Futures** to upload the file and complete your cross-market analysis.
 
 # Disclaimer
 
