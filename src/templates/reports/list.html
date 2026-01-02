@@ -1,11 +1,27 @@
 {% extends "base.html" %}
-
+{% block title %}Reports - CryptoVAT{% endblock %} 
+{% block description %}Hey fellow trader / analyst, welcome to CryptoVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
+{% block og_title %}Reports - CryptoVAT{% endblock %} 
+{% block og_description %}Hey fellow trader / analyst, welcome to CryptoVAT analysis reports page. View and download your cross-market reports.{% endblock %} 
+{% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
 <style>
     /* --- GENERAL LAYOUT --- */
-    body { background: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 { text-align: center; color: #9333ea; margin-bottom: 30px; }
+    body { 
+      background: #0b0e11; 
+      color: #eaecef; 
+      font-family: 'Inter', sans-serif; 
+    }
+  
+    .container { 
+      max-width: 600px; 
+      margin: 30px auto;
+    }
+  
+    h1 { 
+      text-align: center; 
+      color: #9333ea; 
+      margin-bottom: 30px; }
 
     /* --- FILE CARD --- */
     .file-item { 
@@ -155,7 +171,6 @@
         <p style="text-align:center; color:#848e9c; margin-top: 40px;">No reports found yet</p>
     {% endif %}
     
-    <a href="{{ url_for('main.home') }}" style="color: #3b82f6; text-decoration:none; display:block; text-align:center; margin-top: 30px;">← Back to Dashboard</a>
 </div>
 <!-- Simple Js For Interactive Buttons -->
 <script>
