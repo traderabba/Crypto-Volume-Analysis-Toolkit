@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-
+{% block title %}Settings - CryptoVAT{% endblock %} 
+{% block description %}Hey fellow trader / analyst, welcome to settings page. Update your account or factory reset it.
+{% endblock %} 
+{% block og_title %}Settings - CryptoVAT{% endblock %} 
+{% block og_description %}Hey fellow trader / analyst, welcome to settings page. Update your account or factory reset it.{% endblock %} 
+{% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
 <style>
 /* --- MODAL OVERLAY --- */
@@ -142,7 +147,7 @@
     <form action="{{ url_for('main.save_config') }}" method="POST">
         <input type="hidden" name="source" value="settings">
         <div class="card">
-            <h2>API Configuration</h2>
+            <h2 style="color: var(--accent-green);">API Configuration</h2>
             <p style="color:#848e9c; font-size:0.9rem; margin-bottom:15px;">Update your API keys anytime</p>
             
             <label>CoinMarketCap Key</label>
@@ -167,7 +172,6 @@
         <button type="button" class="btn btn-red" onclick="openModal()">FACTORY RESET</button>
     </div>
 
-    <a href="{{ url_for('main.home') }}" style="color: #3b82f6; text-decoration:none;" class="back-link">← Back to Dashboard</a>
 </div>
 
 <div id="resetModal" class="modal-overlay">

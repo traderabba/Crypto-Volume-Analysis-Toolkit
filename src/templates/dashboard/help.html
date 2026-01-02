@@ -1,69 +1,128 @@
 {% extends "base.html" %}
 
+{% block title %}Help & Resources - CryptoVAT{% endblock %}
+{% block description %}Documentation, setup guides, and community resources for the Crypto Volume Analysis Toolkit.{% endblock %}
+{% block og_title %}Help & Resources - CryptoVAT{% endblock %} 
+{% block og_description %}Documentation, setup guides, and community resources for the Crypto Volume Analysis Toolkit.{% endblock %} 
+{% block keywords %}help page, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
 <style>
-/* --- BUTTONS --- */
+    /* --- TYPOGRAPHY FIXES --- */
+    .card p {
+        color: #94a3b8;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
 
-.btn-blue {
-    width: 100%;
-    box-sizing: border-box;
-}
+    .card strong {
+        color: #f1f5f9;
+        font-weight: 700;
+    }
+    
+    /* --- RESOURCE GRID --- */
+    .grid-social {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+    }
 
-.btn-links {
-    width: 100%;
-    box-sizing: border-box;
-}
+    /* --- SOFT BLUE BUTTONS --- */
+    .btn-resource {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px;
+        
+        background: rgba(59, 130, 246, 0.08); 
+        border: 1px solid rgba(59, 130, 246, 0.2); 
+        color: #e2e8f0;
+        
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
 
-/* --- SOCIAL GRID --- */
+    .btn-resource:hover {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: #3b82f6;
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
 
-.grid-social {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 15px;
-}
-     </style>
+    .grid-social .btn-resource {
+        margin-bottom: 0;
+    }
+    
+    /* --- LIST STYLING --- */
+    .guide-list {
+        padding-left: 20px;
+        margin: 0;
+        color: #94a3b8;
+    }
+    .guide-list li {
+        margin-bottom: 12px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+        .grid-social { grid-template-columns: 1fr; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>📚 Help & Information</h1>
+    <h1 style="display:flex; align-items:center; gap:10px;">
+        <span>📚</span> Help & Information
+    </h1>
     
     <div class="card">
-        <h2>About Crypto VAT v4.0</h2>
-        <div style="font-size:0.9rem; line-height:1.6; color:#848e9c;">
-            <p><strong>Crypto Volume Analysis Toolkit v4.0</strong> is a powerful web-based toolkit that helps you track high-volume crypto tokens in the last 24 hours and run cross-market analysis using spot + futures data. Generate professional PDF reports directly in your browser.</p>
-            <p>This cloud edition runs on Hugging Face Spaces with secure Firebase authentication, ensuring your API keys are protected and accessible from anywhere.</p>
-        </div>
+        <h2 style="color: var(--accent-green);">About CryptoVAT</h2>
+        <p>
+            <strong>Crypto Volume Analysis Toolkit</strong> is a powerful web-based suite designed for crypto analysts and traders. It tracks high-volume tokens across the last 24 hours, performing cross-market analysis using integrated Spot and Futures data.
+        </p>
+        <p style="margin-bottom:0;">
+            This cloud edition is powered by <strong>Hugging Face</strong> and <strong>Firebase</strong>, ensuring your custom API keys and settings are encrypted and accessible from any device.
+        </p>
     </div>
 
     <div class="card">
-        <h2>Getting Started Guide</h2>
-        <div style="font-size:0.9rem; line-height:1.6; color:#848e9c;">
-            <ol style="padding-left:20px;">
-                <li><strong>Register/Login:</strong> Create your secure account</li>
-                <li><strong>Setup Wizard:</strong> Configure your API keys (one-time setup)</li>
-                <li><strong>Spot Scan:</strong> Find high-volume tokens across multiple exchanges</li>
-                <li><strong>Get Futures Data:</strong> Export data from CoinAlyze and upload PDF</li>
-                <li><strong>Advanced Analysis:</strong> Combine spot & futures data for insights</li>
-                <li><strong>Reports:</strong> View and download your analysis reports</li>
-            </ol>
-        </div>
+        <h2 style="color: var(--accent-green);">Quick Start Guide</h2>
+        <ol class="guide-list">
+            <li><strong>Register & Login:</strong> Create your account. It is easy, fast, and free.</li>
+            <li><strong>Setup Wizard:</strong> Configure your API keys (CoinMarketCap, etc.) once.</li>
+            <li><strong>Spot Scan:</strong> Tap to identify volume-weighted spot tokens in the last 24 hours.</li>
+            <li><strong>Futures Data:</strong> Export PDF from CoinAlyze and upload it here.</li>
+            <li><strong>Cross-Analysis:</strong> The engine fuses data to generate your OISS score.</li>
+            <li><strong>Report:</strong> Download your professional PDF report instantly.</li>
+        </ol>
     </div>
 
     <div class="card">
-        <h2>Links & Resources</h2>
-        <a href="https://github.com/heisbuba/crypto-volume-analysis-toolkit" class="btn btn-blue" target="_blank">GitHub Repository</a>
-        <a href="https://medium.com/@bubanotes" class="btn btn-blue" target="_blank">Medium Blog</a>
+        <h2 style="color: var(--accent-green);">Learn & Connect</h2>
         
+        <a href="https://x.com/crypto_vat" class="btn-resource" target="_blank">𝕏 Twitter (@crypto_vat)</a>
+           
+        <a href="https://medium.com/@bubanotes" class="btn-resource" target="_blank">
+            <span>📖</span> How to Use it
+        </a> 
+        <a href="https://medium.com/@bubanotes" class="btn-resource" target="_blank">
+            <span>📖</span> Yadda Ake Amfani da Shi
+        </a>
+        <h3 style="font-size:1rem; color:#94a3b8; margin: 25px 0 15px;">Contact Developer</h3>
         <div class="grid-social">
-            <a href="https://x.com/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">𝕏 Twitter</a>
-            <a href="https://facebook.com/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">Facebook</a>
-            <a href="https://youtube.com/@heisbuba25" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">YouTube</a>
-            <a href="https://t.me/heisbuba" class="btn btn-links" style="margin:0; padding:12px; font-size:0.85rem;" target="_blank">Telegram</a>
-        </div>
+            <a href="https://x.com/heisbuba" class="btn-resource" target="_blank">𝕏 Twitter</a>
+            <a href="https://www.facebook.com/heisbuba25" class="btn-resource" target="_blank">Facebook</a>
+           </div>
     </div>
    
-    <a href="{{ url_for('main.home') }}" style="color: #3b82f6; text-decoration:none;" class="back-link">← Back to Dashboard</a>
 </div>
 {% endblock %}

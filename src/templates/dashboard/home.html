@@ -1,38 +1,12 @@
 {% extends "base.html" %}
-
+{% block title %}Dashboard - CryptoVAT{% endblock %} 
+{% block description %}Hey fellow trader / analyst, welcome to CryptoVAT Dashboard. Generate your reports.
+{% endblock %} 
+{% block og_title %}Dashboard - CryptoVAT{% endblock %} 
+{% block og_description %}Hey fellow trader / analyst, welcome to CryptoVAT Dashboard. Generate your reports.{% endblock %} 
+{% block keywords %}register, secure access, crypto dashboard, cryptovat, trading tools{% endblock %} 
 {% block extra_css %}
  <style>
-/* --- HEADER SECTION --- */
-
-.header {
-    padding: 20px;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: var(--accent-green);
-}
-
-.icon-btn {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 1.2rem;
-    padding: 0 10px;
-}
-
-.logout-btn {
-    color: var(--accent-red);
-    text-decoration: none;
-    font-size: 1.2rem;
-    padding: 0 10px;
-    font-weight: bold;
-}
 
 /* --- MAIN DASHBOARD GRID --- */
 
@@ -141,9 +115,9 @@
     transition: width 0.3s;
 }
 
-/* --- FOOTER --- */
+/* --- ADMIN --- */
 
-.footer {
+.admin {
     text-align: center;
     padding: 20px;
     color: var(--text-dim);
@@ -153,14 +127,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="header">
-    <h1>Crypto VAT v4.0</h1>
-    <div>
-        <a href="{{ url_for('main.help_page') }}" class="icon-btn">?</a>
-        <a href="{{ url_for('main.settings') }}" class="icon-btn">⚙️</a>
-        <a href="{{ url_for('auth.logout') }}" class="logout-btn" title="Logout">➜]</a>
-    </div>
-</div>
 
 <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -205,8 +171,7 @@
     </div>
 </div>
 
-<div class="footer">
-    <p>© 2025 | Made with 💚 4rom Nigeria.</p>
+<div class="admin">
     {% if is_admin %}
     <div style="margin-top: 15px; display: flex; justify-content: center;">
         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-links" style="width: auto; padding: 10px 20px; font-size: 0.8rem; margin: 0;">ADMIN DASHBOARD</a>
